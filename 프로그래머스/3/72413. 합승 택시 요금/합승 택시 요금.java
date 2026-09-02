@@ -2,54 +2,45 @@ import java.util.*;
 
 class Solution {
     
-    class Node {
-        int node;
-        int cost;
-        
-        Node(int node, int cost) {
-            this.node = node;
-            this.cost = cost;
-        }
-    }
-    
-    static HashMap<Integer,ArrayList<Node>> map = new HashMap<>();
-    
     public int solution(int n, int s, int a, int b, int[][] fares) {
-        int answer = Integer.MAX_VALUE;
+        int INF = 100_000_000;
+        int answer = INF;
         
-        for(int[] fare: fares) {
-            int c = fare[0], d = fare[1], f = fare[2];
-            map.computeIfAbsent(c, k -> new ArrayList<>()).add(new Node(d,f));
-            map.computeIfAbsent(d, k -> new ArrayList<>()).add(new Node(c,f));
-        }
-        
-        int[] distS = dijkstra(n,s);
-        int[] distA = dijkstra(n,a);
-        int[] distB = dijkstra(n,b);
+        int[][] dist = new int[n+1][n+1];
         for(int i=1;i<=n;i++) {
-            int total = distS[i] + distA[i] + distB[i];
-            answer = Math.min(answer,total);
-        }
-        
-        return answer;
-    }
-    
-    int[] dijkstra(int n, int st) {
-        PriorityQueue<Node> pq = new PriorityQueue<>((a,b) -> a.cost - b.cost);
-        int[] dist = new int[n+1];
-        Arrays.fill(dist, Integer.MAX_VALUE);
-        pq.offer(new Node(st,0));
-        dist[st] = 0;
-        
-        while(!pq.isEmpty()) {
-            Node cur = pq.poll();
-            for(Node next: map.getOrDefault(cur.node, new ArrayList<>())) {
-                int nextCost = cur.cost + next.cost;
-                if(nextCost > dist[next.node]) continue;
-                pq.offer(new Node(next.node, nextCost));
-                dist[next.node] = nextCost;
+            for(int j=1;j<=n;j++) {
+                if(i==j) {
+                    dist[i][j] = 0;
+                } else {
+                    dist[i][j] = INF;
+                }
             }
         }
-        return dist;
+        
+        for(int[] fare: fares) {
+            int from = fare[0], to = fare[1], cost = fare[2];
+            dist[from][to] = Math.min(dist[from][to], cost);
+            dist[to][from] = Math.min(dist[to][from], cost);
+        }
+        
+        // 플로이드워셜
+        for(int k=1;k<=n;k++) {
+            for(int i=1;i<=n;i++) {
+                for(int j=1;j<=n;j++) {
+                    dist[i][j] = Math.min(
+                        dist[i][j],
+                        dist[i][k] + dist[k][j]
+                    );
+                }
+            }
+        }
+        
+        for(int k=1;k<=n;k++) {
+            answer = Math.min(
+                answer,
+                dist[s][k]+dist[k][a]+dist[k][b]
+            );
+        }
+        return answer;
     }
 }
