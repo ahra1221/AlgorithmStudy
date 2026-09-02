@@ -3,31 +3,21 @@ import java.util.*;
 class Solution {
     
     class Node {
-        int end;
-        int dis;
+        int node;
+        int cost;
         
-        Node(int end, int dis) {
-            this.end = end;
-            this.dis = dis;
+        Node(int node, int cost) {
+            this.node = node;
+            this.cost = cost;
         }
     }
     
     public int[] solution(int n, int[][] paths, int[] gates, int[] summits) {
-        HashMap<Integer, ArrayList<Node>> map = new HashMap<>();
+        HashMap<Integer,ArrayList<Node>> map = new HashMap<>();
         for(int[] path: paths) {
-            int st = path[0], en = path[1], d = path[2];
-            map.computeIfAbsent(st, k->new ArrayList<>()).add(new Node(en,d));
-            map.computeIfAbsent(en, k->new ArrayList<>()).add(new Node(st,d));
-        }
-        
-        int[] dist = new int[n+1];
-        Arrays.fill(dist, Integer.MAX_VALUE);
-        PriorityQueue<Node> pq = new PriorityQueue<>((a,b) -> a.dis - b.dis);
-        boolean[] isGate = new boolean[n+1];
-        for(int gate: gates) {
-            pq.offer(new Node(gate,0));
-            dist[gate] = 0;
-            isGate[gate] = true;
+            int i = path[0], j = path[1], w = path[2];
+            map.computeIfAbsent(i, k -> new ArrayList<>()).add(new Node(j,w));
+            map.computeIfAbsent(j, k -> new ArrayList<>()).add(new Node(i,w));
         }
         
         boolean[] isSummit = new boolean[n+1];
@@ -35,29 +25,39 @@ class Solution {
             isSummit[summit] = true;
         }
         
+        int[] dist = new int[n+1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        PriorityQueue<Node> pq = new PriorityQueue<>((a,b) -> a.cost - b.cost); 
+        boolean[] isGate = new boolean[n+1];
+        for(int gate: gates) {
+            pq.offer(new Node(gate,0));
+            dist[gate] = 0;
+            isGate[gate] = true;
+        }
+        
         while(!pq.isEmpty()) {
             Node cur = pq.poll();
-            if(cur.dis > dist[cur.end]) continue;
-            if(isSummit[cur.end]) continue;
-            for(Node node: map.getOrDefault(cur.end, new ArrayList<>())) {
-                if(isGate[node.end]) continue;
-                int newDis = Math.max(dist[cur.end], node.dis);
-                if(newDis < dist[node.end]) {
-                    pq.offer(new Node(node.end, newDis));
-                    dist[node.end] = newDis;
-                }
+            if(cur.cost > dist[cur.node]) continue;
+            if(isSummit[cur.node]) continue;
+            for(Node nxt: map.getOrDefault(cur.node, new ArrayList<>())) {
+                if(isGate[nxt.node]) continue;
+                int newCost = Math.max(nxt.cost, dist[cur.node]);
+                if(newCost >= dist[nxt.node]) continue;
+                pq.offer(new Node(nxt.node, newCost));
+                dist[nxt.node] = newCost;   
             }
         }
         
-        int val = Integer.MAX_VALUE;
-        int num = Integer.MAX_VALUE;
+        int[] answer = new int[2];
+        int intensity = Integer.MAX_VALUE;
+        Arrays.sort(summits);
         for(int summit: summits) {
-            if(dist[summit] < val || (dist[summit] == val && summit < num)) {
-                num = summit;
-                val = dist[summit];
+            if(dist[summit] < intensity) {
+                intensity = dist[summit];
+                answer = new int[]{summit, intensity};
             }
         }
         
-        return new int[]{num, val};
+        return answer;
     }
 }
