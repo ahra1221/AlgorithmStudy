@@ -4,27 +4,15 @@ class Solution {
     public int solution(String[][] book_time) {
         int answer = 0;
         Arrays.sort(book_time, (a,b) -> a[0].compareTo(b[0]));
-        List<String> room = new ArrayList<>();
+        PriorityQueue<String> rooms = new PriorityQueue<>();
         for(String[] time: book_time) {
             String st = time[0], en = time[1];
-            
-            boolean hasRoom = false;
-            for(int i=0;i<room.size();i++) {
-                String endTime = room.get(i);
-                if(st.compareTo(endTime) >= 0) {
-                    room.remove(i);
-                    room.add(calTime(en));
-                    hasRoom = true;
-                    break;
-                }
+            if(!rooms.isEmpty() && st.compareTo(rooms.peek()) >= 0) {
+                rooms.poll();
             }
-            
-            if(!hasRoom) {
-                room.add(calTime(en));
-                answer++;
-            }
+            rooms.offer(calTime(en));
         }
-        return answer;
+        return rooms.size();
     }
     
     static String calTime(String time) {
