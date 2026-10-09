@@ -5,59 +5,44 @@ class Solution {
     int K;
     int columCnt;
     int[] selected;
-    List<int[]> keys = new ArrayList<>();
+    List<Integer> keys = new ArrayList<>();
+    String[][] relation;
     
     public int solution(String[][] relation) {
+        this.relation = relation;
         columCnt = relation[0].length;
         for(K=1;K<=columCnt;K++) {
             selected = new int[K];
-            comb(relation,0,0);
+            comb();
         }
         return keys.size();
     }
     
-    void comb(String[][] relation, int start, int depth) {
-        if(depth == K) {
-            if(!checkMinimality(selected)) return;
-            if(!checkUnique(relation, selected)) return;
-            keys.add(selected.clone());
-            return;
-        }
-        for(int i=start;i<columCnt;i++) {
-            selected[depth] = i;
-            comb(relation,i+1, depth+1);
+    void comb() {
+        for(int mask=1;mask<(1<<columCnt);mask++) {
+            if (!checkMinimality(mask)) continue;
+            if (!checkUnique(mask)) continue;
+            keys.add(mask);
         }
     }
     
-    boolean checkUnique(String[][] relation, int[] select) {
+    boolean checkUnique(int select) {
         Set<String> set = new HashSet<>();
         for(int i=0;i<relation.length;i++) {
             String tmp = "";
-            for(int key: select) {
-                tmp += relation[i][key] + "#";
+            for(int c=0;c<columCnt;c++) {
+                if((select & (1<<c)) != 0) {
+                    tmp += relation[i][c] + "#";
+                }
             }
             set.add(tmp);
         }
         return set.size() == relation.length;
     }
     
-    boolean checkMinimality(int[] select) {
-        for(int[] key: keys) {
-            boolean include = true;
-            for(int k: key) {
-                boolean found = false;
-                for(int s: select) {
-                    if(k==s) {
-                        found = true;
-                        break;
-                    }
-                }
-                if(!found) {
-                    include = false;
-                    break;
-                }
-            }
-            if(include) {
+    boolean checkMinimality(int select) {
+        for(int key: keys) {
+            if((select & key) == key) {
                 return false;
             }
         }   
