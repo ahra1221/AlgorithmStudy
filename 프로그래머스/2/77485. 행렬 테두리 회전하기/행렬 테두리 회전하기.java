@@ -1,47 +1,64 @@
 class Solution {
+    
+    int[][] map;
+    int[] minVal;
+    
     public int[] solution(int rows, int columns, int[][] queries) {
-        int[] answer = new int[queries.length];
-        int[][] arr = new int[rows][columns];
+        map = new int[rows][columns];
+        minVal = new int[queries.length];
+        
         int n = 1;
-        for(int r=0;r<rows;r++) {
-            for(int c=0;c<columns;c++){
-                arr[r][c] = n++;
-            }
+        for(int i=0;i<rows;i++) {
+            for(int j=0;j<columns;j++) {
+                map[i][j] = n++;
+            }   
         }
         
-        int[] dx = {0,1,0,-1};
-        int[] dy = {1,0,-1,0};
         int idx = 0;
-        
         for(int[] query: queries) {
-            int sx = query[0]-1, sy = query[1]-1;
-            int ex = query[2]-1, ey = query[3]-1;
-            int before = arr[sx][sy];
-            int minVal = before;
-            int d = 0;
-            
-            while(true) {
-                int nx = sx + dx[d];
-                int ny = sy + dy[d];
-                if(nx < query[0]-1 || nx > ex || ny < query[1]-1 || ny > ey) {
-                    d = (d+1) % 4;
-                    if(d == 0) {
-                        break;
-                    }
-                    nx = sx + dx[d];
-                    ny = sy + dy[d];
-                }
-                int next = arr[nx][ny];
-                arr[nx][ny] = before;
-                before = next;
-                minVal = Math.min(minVal, before);
-                
-                sx = nx;
-                sy = ny;
-            }
-            answer[idx++] = minVal;
+            minVal[idx++] = rotate(query[0]-1, query[1]-1, query[2]-1, query[3]-1);
         }
+        return minVal;
+    }
+    
+    int rotate(int x1, int y1, int x2, int y2) {
+        int min = map[x1][y1];
         
-        return answer;
+        int tmp = map[x1][y1];
+        int nx = x1;
+        int ny = y1;
+        // right
+        while(ny < y2) {
+            int nxt = map[x1][ny];
+            map[x1][ny] = tmp;
+            tmp = nxt;
+            ny++;
+            min = Math.min(min, nxt);
+        }
+        // down
+        while(nx < x2) {
+            int nxt = map[nx][y2];
+            map[nx][y2] = tmp;
+            tmp = nxt;
+            nx++;
+            min = Math.min(min, nxt);
+        }
+        // left
+        while(ny > y1) {
+            int nxt = map[x2][ny];
+            map[x2][ny] = tmp;
+            tmp = nxt;
+            ny--;
+            min = Math.min(min, nxt);
+        }
+        //up
+         while(nx >= x1) {
+            int nxt = map[nx][y1];
+            map[nx][y1] = tmp;
+            tmp = nxt;
+            nx--;
+            min = Math.min(min, nxt);
+        }
+        return min;
     }
 }
